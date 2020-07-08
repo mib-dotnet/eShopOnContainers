@@ -11,7 +11,9 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "IdentityUrl": "http://localhost:5000",
+        "IdentityUrlHC": "http://localhost:5000/hc"
       }
     },
     "Microsoft.eShopOnContainers.WebMVC": {
@@ -19,7 +21,9 @@
       "launchBrowser": true,
       "launchUrl": "http://localhost:5000",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "IdentityUrl": "http://localhost:5000",
+        "IdentityUrlHC": "http://localhost:5000/hc"
       }
     }
   }
