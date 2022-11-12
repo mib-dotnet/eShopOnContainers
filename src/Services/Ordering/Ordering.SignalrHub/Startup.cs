@@ -52,7 +52,7 @@ namespace Ordering.SignalrHub
             {
                 services
                     .AddSignalR()
-                    .AddRedis(Configuration["SignalrStoreConnectionString"]);
+                    .AddStackExchangeRedis(Configuration["SignalrStoreConnectionString"]);
             }
             else
             {
