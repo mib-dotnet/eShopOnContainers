@@ -63,6 +63,8 @@ services:
 
     ports:
       - "5105:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   basket-api:
     environment:
@@ -84,6 +86,8 @@ services:
     ports:
       - "5103:80"
       - "9103:81"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   catalog-api:
     environment:
@@ -131,6 +135,8 @@ services:
     ports:
       - "5102:80"
       - "9102:81"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   ordering-backgroundtasks:
     environment:
@@ -150,6 +156,8 @@ services:
       - Serilog__MinimumLevel__Override__Microsoft.eShopOnContainers.BuildingBlocks.EventBusRabbitMQ=Verbose
     ports:
       - "5111:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # marketing-api:
   #   environment:
@@ -222,6 +230,8 @@ services:
       - IdentityUrlExternal=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105
     ports:
       - "5113:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # mobileshoppingapigw:
   #   volumes:
@@ -292,6 +302,8 @@ services:
       - IdentityUrlExternal=http://${ESHOP_EXTERNAL_DNS_NAME_OR_IP}:5105
     ports:
       - "5121:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   ordering-signalrhub:
     environment:
@@ -379,6 +391,8 @@ services:
       
     ports:
       - "5100:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   webhooks-client:
     environment:
@@ -390,6 +404,9 @@ services:
       - SelfUrl=http://webhooks-client/
     ports:
       - "5114:80"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      
 volumes:
   eshop-sqldata:
     external: false
