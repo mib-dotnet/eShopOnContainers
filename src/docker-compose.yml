@@ -23,6 +23,7 @@ services:
       context: .
       dockerfile: Services/Identity/Identity.API/Dockerfile
     depends_on:
+      - basketdata
       - sqldata
 
   basket-api:
@@ -62,33 +63,33 @@ services:
       - sqldata
       - rabbitmq
 
-  marketing-api:
-    image: ${REGISTRY:-eshop}/marketing.api:${PLATFORM:-linux}-${TAG:-latest}
-    build:
-      context: .
-      dockerfile: Services/Marketing/Marketing.API/Dockerfile
-    depends_on:
-      - sqldata
-      - nosqldata
-      - identity-api
-      - rabbitmq
+  # marketing-api:
+  #   image: ${REGISTRY:-eshop}/marketing.api:${PLATFORM:-linux}-${TAG:-latest}
+  #   build:
+  #     context: .
+  #     dockerfile: Services/Marketing/Marketing.API/Dockerfile
+  #   depends_on:
+  #     - sqldata
+  #     - nosqldata
+  #     - identity-api
+  #     - rabbitmq
 
-  payment-api:
-    image: ${REGISTRY:-eshop}/payment.api:${PLATFORM:-linux}-${TAG:-latest}
-    build:
-      context: .
-      dockerfile: Services/Payment/Payment.API/Dockerfile
-    depends_on:
-      - rabbitmq
+  # payment-api:
+  #   image: ${REGISTRY:-eshop}/payment.api:${PLATFORM:-linux}-${TAG:-latest}
+  #   build:
+  #     context: .
+  #     dockerfile: Services/Payment/Payment.API/Dockerfile
+  #   depends_on:
+  #     - rabbitmq
 
-  locations-api:
-    image: ${REGISTRY:-eshop}/locations.api:${PLATFORM:-linux}-${TAG:-latest}
-    build:
-      context: .
-      dockerfile: Services/Location/Locations.API/Dockerfile
-    depends_on:
-      - nosqldata
-      - rabbitmq
+  # locations-api:
+  #   image: ${REGISTRY:-eshop}/locations.api:${PLATFORM:-linux}-${TAG:-latest}
+  #   build:
+  #     context: .
+  #     dockerfile: Services/Location/Locations.API/Dockerfile
+  #   depends_on:
+  #     - nosqldata
+  #     - rabbitmq
 
   webhooks-api:
     image: ${REGISTRY:-eshop}/webhooks.api:${PLATFORM:-linux}-${TAG:-latest}
@@ -98,26 +99,26 @@ services:
     depends_on:
       - sqldata
 
-  mobileshoppingapigw:
-    image: envoyproxy/envoy:v1.11.1
+  # mobileshoppingapigw:
+  #   image: envoyproxy/envoy:v1.11.1
 
-  mobilemarketingapigw:
-    image: envoyproxy/envoy:v1.11.1
+  # mobilemarketingapigw:
+  #   image: envoyproxy/envoy:v1.11.1
 
-  mobileshoppingagg:
-    image: ${REGISTRY:-eshop}/mobileshoppingagg:${PLATFORM:-linux}-${TAG:-latest}
-    build:
-      context: .
-      dockerfile: ApiGateways/Mobile.Bff.Shopping/aggregator/Dockerfile
-    depends_on:
-      - nosqldata
-      - sqldata
-      - identity-api
-      - rabbitmq
-      - ordering-api
-      - marketing-api
-      - catalog-api
-      - basket-api
+  # mobileshoppingagg:
+  #   image: ${REGISTRY:-eshop}/mobileshoppingagg:${PLATFORM:-linux}-${TAG:-latest}
+  #   build:
+  #     context: .
+  #     dockerfile: ApiGateways/Mobile.Bff.Shopping/aggregator/Dockerfile
+  #   depends_on:
+  #     - nosqldata
+  #     - sqldata
+  #     - identity-api
+  #     - rabbitmq
+  #     - ordering-api
+  #     - marketing-api
+  #     - catalog-api
+  #     - basket-api
 
   webshoppingagg:
     image: ${REGISTRY:-eshop}/webshoppingagg:${PLATFORM:-linux}-${TAG:-latest}
@@ -130,7 +131,7 @@ services:
       - identity-api
       - rabbitmq
       - ordering-api
-      - marketing-api
+      # - marketing-api
       - catalog-api
       - basket-api
 
@@ -145,7 +146,7 @@ services:
       - identity-api
       - rabbitmq
       - ordering-api
-      - marketing-api
+      # - marketing-api
       - catalog-api
       - basket-api
 
@@ -155,13 +156,13 @@ services:
       context: .
       dockerfile: Web/WebStatus/Dockerfile
 
-  webspa:
-    image: ${REGISTRY:-eshop}/webspa:${PLATFORM:-linux}-${TAG:-latest}
-    build:
-      context: .
-      dockerfile: Web/WebSPA/Dockerfile
-      args:
-        NODE_IMAGE: ${NODE_IMAGE:-node:10.13}
+  # webspa:
+  #   image: ${REGISTRY:-eshop}/webspa:${PLATFORM:-linux}-${TAG:-latest}
+  #   build:
+  #     context: .
+  #     dockerfile: Web/WebSPA/Dockerfile
+  #     args:
+  #       NODE_IMAGE: ${NODE_IMAGE:-node:10.13}
 #    depends_on:
 #      - webshoppingagg
 #      - webshoppingapigw
@@ -173,9 +174,10 @@ services:
       context: .
       dockerfile: Web/WebMVC/Dockerfile
     depends_on:
+      - basketdata
       - webshoppingagg
       - webshoppingapigw
-      - webmarketingapigw
+      # - webmarketingapigw
 
   webhooks-client:
     image: ${REGISTRY:-eshop}/webhooks.client:${PLATFORM:-linux}-${TAG:-latest}
@@ -188,5 +190,5 @@ services:
   webshoppingapigw:
     image: envoyproxy/envoy:v1.11.1
 
-  webmarketingapigw:
-    image: envoyproxy/envoy:v1.11.1
+  # webmarketingapigw:
+  #   image: envoyproxy/envoy:v1.11.1

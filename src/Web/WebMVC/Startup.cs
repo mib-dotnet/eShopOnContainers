@@ -19,6 +19,8 @@ using Microsoft.IdentityModel.Logging;
 using StackExchange.Redis;
 using System;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
 using WebMVC.Infrastructure;
 using WebMVC.Infrastructure.Middlewares;
@@ -133,13 +135,19 @@ namespace Microsoft.eShopOnContainers.WebMVC
             services.AddSession();
             services.AddDistributedMemoryCache();
 
-            if (configuration.GetValue<string>("IsClusterEnv") == bool.TrueString)
+            var redisHost = configuration.GetValue<string>("Redis:Host");
+            var redisPort = configuration.GetValue<int>("Redis:Port");
+            var redisIpAddress = Dns.GetHostEntryAsync(redisHost).Result.AddressList.Last();
+            var redis = ConnectionMultiplexer.Connect($"{redisIpAddress}:{redisPort}");
+
+            //if (configuration.GetValue<string>("IsClusterEnv") == bool.TrueString)
             {
                 services.AddDataProtection(opts =>
                 {
-                    opts.ApplicationDiscriminator = "eshop.webmvc";
+                    opts.ApplicationDiscriminator = "eshop.identity";
                 })
-                .PersistKeysToStackExchangeRedis(ConnectionMultiplexer.Connect(configuration["DPConnectionString"]), "DataProtection-Keys");
+                .PersistKeysToStackExchangeRedis(redis, "DataProtection-Keys")
+                .SetDefaultKeyLifetime(TimeSpan.FromDays(14));
             }
 
             return services;

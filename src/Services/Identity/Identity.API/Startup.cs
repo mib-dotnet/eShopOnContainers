@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.eShopOnContainers.Services.Identity.API.Certificates;
@@ -20,6 +21,8 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
 using System;
+using System.Linq;
+using System.Net;
 using System.Reflection;
 
 namespace Microsoft.eShopOnContainers.Services.Identity.API
@@ -54,13 +57,19 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
 
             services.Configure<AppSettings>(Configuration);
 
-            if (Configuration.GetValue<string>("IsClusterEnv") == bool.TrueString)
+            var redisHost = Configuration.GetValue<string>("Redis:Host");
+            var redisPort = Configuration.GetValue<int>("Redis:Port");
+            var redisIpAddress = Dns.GetHostEntryAsync(redisHost).Result.AddressList.Last();
+            var redis = ConnectionMultiplexer.Connect($"{redisIpAddress}:{redisPort}");
+
+            //if (Configuration.GetValue<string>("IsClusterEnv") == bool.TrueString)
             {
                 services.AddDataProtection(opts =>
                 {
                     opts.ApplicationDiscriminator = "eshop.identity";
                 })
-                .PersistKeysToStackExchangeRedis(ConnectionMultiplexer.Connect(Configuration["DPConnectionString"]), "DataProtection-Keys");
+                .PersistKeysToStackExchangeRedis(redis, "DataProtection-Keys")
+                .SetDefaultKeyLifetime(TimeSpan.FromDays(14));
             }
 
             services.AddHealthChecks()
@@ -79,7 +88,10 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
             services.AddIdentityServer(x =>
             {
                 x.IssuerUri = "null";
-                x.Authentication.CookieLifetime = TimeSpan.FromHours(2);
+                //x.Authentication.CookieLifetime = TimeSpan.FromHours(5);
+                //x.Authentication. = SameSiteMode.Lax;
+                x.Authentication.CookieSlidingExpiration = true;
+                //options.Authentication.CheckSessionCookieName = "Identity.Session";
             })
             .AddDevspacesIfNeeded(Configuration.GetValue("EnableDevspaces", false))
             .AddSigningCredential(Certificate.Get())
@@ -158,7 +170,14 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
             // Fix a problem with chrome. Chrome enabled a new feature "Cookies without SameSite must be secure", 
             // the coockies shold be expided from https, but in eShop, the internal comunicacion in aks and docker compose is http.
             // To avoid this problem, the policy of cookies shold be in Lax mode.
-            app.UseCookiePolicy(new CookiePolicyOptions { MinimumSameSitePolicy = AspNetCore.Http.SameSiteMode.Lax });
+            app.UseCookiePolicy(new CookiePolicyOptions
+            {
+                MinimumSameSitePolicy = AspNetCore.Http.SameSiteMode.Lax,
+                OnAppendCookie = cookieContext =>
+                    CheckSameSite(cookieContext.Context, cookieContext.CookieOptions),
+                OnDeleteCookie = cookieContext =>
+                    CheckSameSite(cookieContext.Context, cookieContext.CookieOptions)
+            });
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
@@ -174,6 +193,20 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
                     Predicate = r => r.Name.Contains("self")
                 });
             });
+        }
+
+        private void CheckSameSite(HttpContext httpContext, CookieOptions options)
+        {
+            if (options.SameSite == SameSiteMode.None)
+            {
+                var userAgent = httpContext.Request.Headers["User-Agent"].ToString();
+                // TODO: Use your User Agent library of choice here.
+                if (!string.IsNullOrEmpty(userAgent))
+                {
+                    // For .NET Core < 3.1 set SameSite = (SameSiteMode)(-1)
+                    options.SameSite = (SameSiteMode)(1);
+                }
+            }
         }
 
         private void RegisterAppInsights(IServiceCollection services)
