@@ -88,9 +88,9 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API
             services.AddIdentityServer(x =>
             {
                 x.IssuerUri = "null";
-                //x.Authentication.CookieLifetime = TimeSpan.FromHours(5);
+                x.Authentication.CookieLifetime = TimeSpan.FromHours(5);
                 //x.Authentication. = SameSiteMode.Lax;
-                x.Authentication.CookieSlidingExpiration = true;
+                // x.Authentication.CookieSlidingExpiration = true;
                 //options.Authentication.CheckSessionCookieName = "Identity.Session";
             })
             .AddDevspacesIfNeeded(Configuration.GetValue("EnableDevspaces", false))
